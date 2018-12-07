@@ -105,11 +105,8 @@ func main() {
   if opts.Command != "" {
     command = opts.Command
   }
-  if opts.Unit != "" {
-    group_sec, err = strconv.Atoi(opts.Unit)
-    failOnError(err)
-  } else {
-    group_sec = 60
+  if opts.Unit > 60 {
+    group_sec = opts.Unit
   }
 
   if opts.Data_path != "" {
@@ -190,7 +187,7 @@ type Option struct {
   Data_path string `json:"data_path"`
   Filter string `json:"filter"`
   Command string `json:"command"`
-  Unit string `json:"unit"`
+  Unit int `json:"unit"`
 }
 
 func getOptions() Options {
