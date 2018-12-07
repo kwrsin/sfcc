@@ -116,6 +116,7 @@ func main() {
 
     if len(os.Args) > 2 {
       if isNumber(os.Args[2]) {
+        command = action_sum
         group_sec = toNumber(os.Args[2])
       }
     }
