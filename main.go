@@ -2,23 +2,31 @@
 Simple FX Candle Converter
 
 Usage
-  param1 : datafile
-  param2 : filter 2001 => just excluded 2001year's data
-  param3 : command => "sum" command converts new candle data from a input data file. other command(or empty) just exclues data with filter(2nd parameter).
+  param1 : datafile(csv, tsv...)
+  param2 : filter 2018 => just excluded 2018 year's data.
+  param3 : command => "sum" command converts new candle data from a input data file(1 minite). other command(or empty) just exclues data with filter(2nd parameter).
   param4 : set seconds 10min(10*60) => 600, 1hour(60*60) => 3600
 
   ex:)
-    ./sfcc  sample.txt 2001
+    ./sfcc  sample.txt 2018 > usjp2018.txt
 
     OR
 
-    ./sfcc  sample.txt 2001 sum 600
+    ./sfcc sample.txt 2018 sum $((60*60)) > usjp2018.txt
+
+  Options
+    you can use options.(opts.json: the file need to put same directory app file exist.)
+    order => order of reading file
+    division_separator => input's separator
+    join_separator => output's separator
 */
 
 package main
 
 import(
   "encoding/csv"
+  "encoding/json"
+  "io/ioutil"
   "fmt"
   "io"
   "os"
@@ -28,21 +36,36 @@ import(
   "strconv"
 )
 
-const join_separator string = ","
-const division_separator string = ","
 const action_sum string = "sum"
 const hour int = 60*60
 const day int = hour*24
 const month int = day*31
 const year int = month*12
+const opt_pair = "PAIR"
+const opt_date = "DATE"
+const opt_time = "TIME"
+const opt_open = "OPEN"
+const opt_high = "HIGH"
+const opt_low = "LOW"
+const opt_close = "CLOSE"
+const opt_vol = "VOL"
+var label_order_pair = 0
+var label_order_date = 1
+var label_order_time = 2
+var label_order_open = 3
+var label_order_high = 4
+var label_order_low = 5
+var label_order_close = 6
+var label_order_vol = 7
 
 func main() {
   var command string = "search"
   var group_sec int = 60
+  var join_separator string = ","
+  var division_separator string = ","
 
   var fp *os.File
   var err error
-  fmt.Println(os.Args)
   if len(os.Args) < 3  {
     failOnError(errors.New(fmt.Sprintf("", "too short args!")))
   }
@@ -57,6 +80,36 @@ func main() {
     group_sec, err = strconv.Atoi(os.Args[4])
     failOnError(err)
   }
+
+  opts := getOptions().Options
+  if opts.Join_separator != "" {
+    join_separator = opts.Join_separator
+  }
+  if opts.Division_separator != "" {
+    division_separator = opts.Division_separator
+  }
+  if opts.Order != nil {
+    for i := 0; i < len(opts.Order); i++ {
+      if opts.Order[i] != "" && opts.Order[i] == opt_pair {
+        label_order_pair = i
+      } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_date {
+        label_order_date = i
+      } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_time {
+        label_order_time = i
+      } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_open {
+        label_order_open = i
+      } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_high {
+        label_order_high = i
+      } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_low {
+        label_order_low = i
+      } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_close {
+        label_order_close = i
+      } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_vol {
+        label_order_vol = i
+      }
+    }
+  }
+
 
   fp, err = os.Open(os.Args[1])
   if err != nil  {
@@ -76,10 +129,11 @@ func main() {
     } else if err != nil {
       failOnError(err)
     }
+
     if command == action_sum  {
-      if(pattern == record[1][0:len(pattern)] && isNumber(record[1][0:4])) {
+      if(pattern == record[label_order_date][0:len(pattern)] && isNumber(record[label_order_date][0:4])) {
         div, unit := getNumberOfDivision(group_sec)
-        datetime_str := record[1] + record[2]
+        datetime_str := record[label_order_date] + record[label_order_time]
         key := getKey(datetime_str, div, unit)
         if prevKey != "" && mergedDataDict[key] == nil {
           fmt.Println(strings.Join(mergedDataDict[prevKey], join_separator))
@@ -95,7 +149,7 @@ func main() {
         prevKey = key
       }
     } else {
-      if(pattern == record[1][0:len(pattern)]) {
+      if(pattern == record[label_order_date][0:len(pattern)]) {
         fmt.Println(strings.Join(record, join_separator))
       }
     }
@@ -114,19 +168,43 @@ func failOnError(err error) {
   }
 }
 
-func merge_data(record []string, data []string) (ret []string) {
-  rPair := record[0]
-  rDate := record[1]
-  rTime := record[2]
-  rHigh := record[4]
-  rLow := record[5]
-  rClose := record[6]
-  rVol:= record[7]
+type Options struct {
+    Options Option `json:"options"`
+}
 
-  sOpen := data[3]
-  sHigh := data[4]
-  sLow := data[5]
-  sVol:= data[7]
+type Option struct {
+  Order []string `json:"order"`
+  Division_separator   string `json:"division_separator"`
+  Join_separator   string `json:"join_separator"`
+}
+
+func getOptions() Options {
+  var options Options
+  json_file, err := os.Open("opts.json");
+  if err != nil {
+    return options
+  }
+  defer json_file.Close()
+  bytes, _ := ioutil.ReadAll(json_file)
+
+  json.Unmarshal([]byte(bytes), &options)
+
+  return options
+}
+
+func merge_data(record []string, data []string) (ret []string) {
+  rPair := record[label_order_pair]
+  rDate := record[label_order_date]
+  rTime := record[label_order_time]
+  rHigh := record[label_order_high]
+  rLow := record[label_order_low]
+  rClose := record[label_order_close]
+  rVol:= record[label_order_vol]
+
+  sOpen := data[label_order_open]
+  sHigh := data[label_order_high]
+  sLow := data[label_order_low]
+  sVol:= data[label_order_vol]
   if sHigh > rHigh {
     rHigh = sHigh
   }
