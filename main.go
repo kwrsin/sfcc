@@ -24,7 +24,7 @@ Usage
     filter             => if '2018' is set, just excluded 2018 year's data.
     unit               => set seconds. 10min(10*60) => 600, 1hour(60*60) => 3600
 
-    do not remove these key in opts.json
+    do not remove these keys in opts.json
 */
 
 package main
@@ -115,18 +115,17 @@ func main() {
     }
   }
 
-  if opts.Data_path != "" {
-    fp, err = os.Open(opts.Data_path)
-    if err != nil  {
-      failOnError(err)
-    }
-    defer fp.Close()
-  } else {
-    info, err := os.Stdin.Stat()
-    if err != nil {
+  info, err := os.Stdin.Stat()
+  if err != nil || info.Size() <= 0 {
+    if opts.Data_path != "" {
+      fp, err = os.Open(opts.Data_path)
+      if err != nil  {
         failOnError(err)
+      }
+      defer fp.Close()
     }
-    if info.Mode() & os.ModeCharDevice != 0 || info.Size() <= 0 {
+  } else {
+    if info.Mode() & os.ModeCharDevice != 0 {
       failOnError(errors.New(fmt.Sprintf("", "device error!")))
     }
     fp = os.Stdin
