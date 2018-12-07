@@ -22,7 +22,6 @@ Usage
     join_separator     => output's separator
     data_path          => datafile(csv, tsv...) if the field is empty, get data from stdin using pipe.
     filter             => if '2018' is set, just excluded 2018 year's data.
-    command            => "sum" command converts new candle data from a input data file(1 minite). other command(or empty) just exclues data with filter(2nd parameter).
     unit               => set seconds. 10min(10*60) => 600, 1hour(60*60) => 3600
 
     do not remove these key in opts.json
@@ -56,6 +55,7 @@ const opt_high = "HIGH"
 const opt_low = "LOW"
 const opt_close = "CLOSE"
 const opt_vol = "VOL"
+const minmum_group = 60
 var label_order_pair = 0
 var label_order_date = 1
 var label_order_time = 2
@@ -66,8 +66,7 @@ var label_order_close = 6
 var label_order_vol = 7
 
 func main() {
-  var command string = "search"
-  var group_sec int = 60
+  var group_sec int = minmum_group
   var join_separator string = ","
   var division_separator string = ","
   var pattern string = ""
@@ -105,18 +104,12 @@ func main() {
   if opts.Filter != "" {
     pattern = opts.Filter
   }
-  if opts.Command != "" {
-    command = opts.Command
-  }
-  if opts.Unit > 60 {
-    group_sec = opts.Unit
-  }
+  group_sec = opts.Unit
   if len(os.Args) > 1 {
     pattern = os.Args[1]
 
     if len(os.Args) > 2 {
       if isNumber(os.Args[2]) {
-        command = action_sum
         group_sec = toNumber(os.Args[2])
       }
     }
@@ -152,7 +145,7 @@ func main() {
       failOnError(err)
     }
 
-    if command == action_sum  {
+    if group_sec >= minmum_group {
       if(pattern == record[label_order_date][0:len(pattern)] && isNumber(record[label_order_date][0:4])) {
         div, unit := getNumberOfDivision(group_sec)
         datetime_str := record[label_order_date] + record[label_order_time]
@@ -199,7 +192,6 @@ type Option struct {
   Join_separator string `json:"join_separator"`
   Data_path string `json:"data_path"`
   Filter string `json:"filter"`
-  Command string `json:"command"`
   Unit int `json:"unit"`
 }
 
