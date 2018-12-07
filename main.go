@@ -111,12 +111,21 @@ func main() {
   }
 
 
-  fp, err = os.Open(os.Args[1])
-  if err != nil  {
-    failOnError(err)
-  }
-  defer fp.Close()
+  // fp, err = os.Open(os.Args[1])
+  // if err != nil  {
+  //   failOnError(err)
+  // }
+  // defer fp.Close()
 
+  // reader := csv.NewReader(fp)
+  info, err := os.Stdin.Stat()
+  if err != nil {
+      failOnError(err)
+  }
+  if info.Mode() & os.ModeCharDevice != 0 || info.Size() <= 0 {
+    failOnError(errors.New(fmt.Sprintf("", "device error!")))
+  }
+  fp = os.Stdin
   reader := csv.NewReader(fp)
   reader.Comma = []rune(division_separator)[0]
   reader.LazyQuotes = true
@@ -154,7 +163,6 @@ func main() {
       }
     }
   }
-      breakpoint();
   if prevKey != "" && mergedDataDict[prevKey] != nil {
     fmt.Println(strings.Join(mergedDataDict[prevKey], join_separator))
     delete(mergedDataDict, prevKey)
