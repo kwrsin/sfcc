@@ -5,8 +5,10 @@ Simple FX Candle Converter
 Usage
 
   ex:)
+    prameter1 => filter
+    prameter2 => unit
 
-    ./sfcc  > usjp2018.txt
+    ./sfcc 2018 $((60*60)) > usjp2018.txt
 
     OR
 
@@ -23,6 +25,7 @@ Usage
     command            => "sum" command converts new candle data from a input data file(1 minite). other command(or empty) just exclues data with filter(2nd parameter).
     unit               => set seconds. 10min(10*60) => 600, 1hour(60*60) => 3600
 
+    do not remove these key in opts.json
 */
 
 package main
@@ -107,6 +110,15 @@ func main() {
   }
   if opts.Unit > 60 {
     group_sec = opts.Unit
+  }
+  if len(os.Args) > 1 {
+    pattern = os.Args[1]
+
+    if len(os.Args) > 2 {
+      if isNumber(os.Args[2]) {
+        group_sec = toNumber(os.Args[2])
+      }
+    }
   }
 
   if opts.Data_path != "" {
