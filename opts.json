@@ -11,6 +11,10 @@
       "VOL"
     ],
     "division_separator": ",",
-    "join_separator": ","
+    "join_separator": ",",
+    "data_path": "sample.txt",
+    "filter": "2018",
+    "command": "sum",
+    "unit": 60
   }
 }

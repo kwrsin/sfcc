@@ -1,24 +1,28 @@
 /*
+
 Simple FX Candle Converter
 
 Usage
-  param1 : datafile(csv, tsv...)
-  param2 : filter 2018 => just excluded 2018 year's data.
-  param3 : command => "sum" command converts new candle data from a input data file(1 minite). other command(or empty) just exclues data with filter(2nd parameter).
-  param4 : set seconds 10min(10*60) => 600, 1hour(60*60) => 3600
 
   ex:)
-    ./sfcc  sample.txt 2018 > usjp2018.txt
+
+    ./sfcc  > usjp2018.txt
 
     OR
 
-    ./sfcc sample.txt 2018 sum $((60*60)) > usjp2018.txt
+    cat sample.txt | ./sfcc > usjp2018.txt
 
-  Options
-    you can use options.(opts.json: the file need to put same directory app file exist.)
-    order => order of reading file
+  opts.json
+    the file need to put same directory app file exist.
+
+    order              => order of reading file
     division_separator => input's separator
-    join_separator => output's separator
+    join_separator     => output's separator
+    data_path          => datafile(csv, tsv...) if the field is empty, get data from stdin using pipe.
+    filter             => if '2018' is set, just excluded 2018 year's data.
+    command            => "sum" command converts new candle data from a input data file(1 minite). other command(or empty) just exclues data with filter(2nd parameter).
+    unit               => set seconds. 10min(10*60) => 600, 1hour(60*60) => 3600
+
 */
 
 package main
@@ -63,23 +67,9 @@ func main() {
   var group_sec int = 60
   var join_separator string = ","
   var division_separator string = ","
-
+  var pattern string = ""
   var fp *os.File
   var err error
-  if len(os.Args) < 3  {
-    failOnError(errors.New(fmt.Sprintf("", "too short args!")))
-  }
-  var pattern = os.Args[2]
-  if len(pattern) < 4 {
-    failOnError(errors.New(fmt.Sprintf("", "a date pattern is required!")))
-  }
-  if len(os.Args) >= 4 {
-    command = os.Args[3]
-  }
-  if len(os.Args) >= 5 {
-    group_sec, err = strconv.Atoi(os.Args[4])
-    failOnError(err)
-  }
 
   opts := getOptions().Options
   if opts.Join_separator != "" {
@@ -109,23 +99,36 @@ func main() {
       }
     }
   }
+  if opts.Filter != "" {
+    pattern = opts.Filter
+  }
+  if opts.Command != "" {
+    command = opts.Command
+  }
+  if opts.Unit != "" {
+    group_sec, err = strconv.Atoi(opts.Unit)
+    failOnError(err)
+  } else {
+    group_sec = 60
+  }
 
-
-  // fp, err = os.Open(os.Args[1])
-  // if err != nil  {
-  //   failOnError(err)
-  // }
-  // defer fp.Close()
-
-  // reader := csv.NewReader(fp)
-  info, err := os.Stdin.Stat()
-  if err != nil {
+  if opts.Data_path != "" {
+    fp, err = os.Open(opts.Data_path)
+    if err != nil  {
       failOnError(err)
+    }
+    defer fp.Close()
+  } else {
+    info, err := os.Stdin.Stat()
+    if err != nil {
+        failOnError(err)
+    }
+    if info.Mode() & os.ModeCharDevice != 0 || info.Size() <= 0 {
+      failOnError(errors.New(fmt.Sprintf("", "device error!")))
+    }
+    fp = os.Stdin
   }
-  if info.Mode() & os.ModeCharDevice != 0 || info.Size() <= 0 {
-    failOnError(errors.New(fmt.Sprintf("", "device error!")))
-  }
-  fp = os.Stdin
+
   reader := csv.NewReader(fp)
   reader.Comma = []rune(division_separator)[0]
   reader.LazyQuotes = true
@@ -182,8 +185,12 @@ type Options struct {
 
 type Option struct {
   Order []string `json:"order"`
-  Division_separator   string `json:"division_separator"`
-  Join_separator   string `json:"join_separator"`
+  Division_separator string `json:"division_separator"`
+  Join_separator string `json:"join_separator"`
+  Data_path string `json:"data_path"`
+  Filter string `json:"filter"`
+  Command string `json:"command"`
+  Unit string `json:"unit"`
 }
 
 func getOptions() Options {
