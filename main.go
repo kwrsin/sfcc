@@ -17,7 +17,7 @@ Usage
   opts.json
     the file need to put same directory app file exist.
 
-    order              => order of reading file
+    input              => order of reading file
     division_separator => input's separator
     join_separator     => output's separator
     data_path          => datafile(csv, tsv...) if the field is empty, get data from stdin using pipe.
@@ -80,23 +80,23 @@ func main() {
   if opts.Division_separator != "" {
     division_separator = opts.Division_separator
   }
-  if opts.Order != nil {
-    for i := 0; i < len(opts.Order); i++ {
-      if opts.Order[i] != "" && opts.Order[i] == opt_pair {
+  if opts.Input != nil {
+    for i := 0; i < len(opts.Input); i++ {
+      if opts.Input[i] != "" && opts.Input[i] == opt_pair {
         index_order_pair = i
-      } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_date {
+      } else if opts.Input[i] != "" && strings.ToUpper(opts.Input[i]) == opt_date {
         index_order_date = i
-      } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_time {
+      } else if opts.Input[i] != "" && strings.ToUpper(opts.Input[i]) == opt_time {
         index_order_time = i
-      } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_open {
+      } else if opts.Input[i] != "" && strings.ToUpper(opts.Input[i]) == opt_open {
         index_order_open = i
-      } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_high {
+      } else if opts.Input[i] != "" && strings.ToUpper(opts.Input[i]) == opt_high {
         index_order_high = i
-      } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_low {
+      } else if opts.Input[i] != "" && strings.ToUpper(opts.Input[i]) == opt_low {
         index_order_low = i
-      } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_close {
+      } else if opts.Input[i] != "" && strings.ToUpper(opts.Input[i]) == opt_close {
         index_order_close = i
-      } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_vol {
+      } else if opts.Input[i] != "" && strings.ToUpper(opts.Input[i]) == opt_vol {
         index_order_vol = i
       }
     }
@@ -186,7 +186,7 @@ type Options struct {
 }
 
 type Option struct {
-  Order []string `json:"order"`
+  Input []string `json:"input"`
   Division_separator string `json:"division_separator"`
   Join_separator string `json:"join_separator"`
   Data_path string `json:"data_path"`

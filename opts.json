@@ -1,6 +1,16 @@
 {
   "options": {
-    "order": [
+    "input": [
+      "PAIR",
+      "DATE",
+      "TIME",
+      "OPEN",
+      "HIGH",
+      "LOW",
+      "CLOSE",
+      "VOL"
+    ],
+    "output": [
       "PAIR",
       "DATE",
       "TIME",
