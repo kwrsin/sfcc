@@ -56,14 +56,14 @@ const opt_low = "LOW"
 const opt_close = "CLOSE"
 const opt_vol = "VOL"
 const minmum_group = 60
-var label_order_pair = 0
-var label_order_date = 1
-var label_order_time = 2
-var label_order_open = 3
-var label_order_high = 4
-var label_order_low = 5
-var label_order_close = 6
-var label_order_vol = 7
+var index_order_pair = 0
+var index_order_date = 1
+var index_order_time = 2
+var index_order_open = 3
+var index_order_high = 4
+var index_order_low = 5
+var index_order_close = 6
+var index_order_vol = 7
 
 func main() {
   var group_sec int = minmum_group
@@ -72,6 +72,7 @@ func main() {
   var pattern string = ""
   var fp *os.File
   var err error
+  var output_idx_list = make([]int, 0, index_order_vol + 1)
 
   opts := getOptions().Options
   if opts.Join_separator != "" {
@@ -83,21 +84,29 @@ func main() {
   if opts.Order != nil {
     for i := 0; i < len(opts.Order); i++ {
       if opts.Order[i] != "" && opts.Order[i] == opt_pair {
-        label_order_pair = i
+        output_idx_list = append(output_idx_list, index_order_pair)
+        index_order_pair = i
       } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_date {
-        label_order_date = i
+        output_idx_list = append(output_idx_list, index_order_date)
+        index_order_date = i
       } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_time {
-        label_order_time = i
+        output_idx_list = append(output_idx_list, index_order_time)
+        index_order_time = i
       } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_open {
-        label_order_open = i
+        output_idx_list = append(output_idx_list, index_order_open)
+        index_order_open = i
       } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_high {
-        label_order_high = i
+        output_idx_list = append(output_idx_list, index_order_high)
+        index_order_high = i
       } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_low {
-        label_order_low = i
+        output_idx_list = append(output_idx_list, index_order_low)
+        index_order_low = i
       } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_close {
-        label_order_close = i
+        output_idx_list = append(output_idx_list, index_order_close)
+        index_order_close = i
       } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_vol {
-        label_order_vol = i
+        output_idx_list = append(output_idx_list, index_order_vol)
+        index_order_vol = i
       }
     }
   }
@@ -145,9 +154,9 @@ func main() {
     }
 
     if group_sec >= minmum_group {
-      if(pattern == record[label_order_date][0:len(pattern)] && isNumber(record[label_order_date][0:4])) {
+      if(pattern == record[index_order_date][0:len(pattern)] && isNumber(record[index_order_date][0:4])) {
         div, unit := getNumberOfDivision(group_sec)
-        datetime_str := record[label_order_date] + record[label_order_time]
+        datetime_str := record[index_order_date] + record[index_order_time]
         key := getKey(datetime_str, div, unit)
         if prevKey != "" && mergedDataDict[key] == nil {
           fmt.Println(strings.Join(mergedDataDict[prevKey], join_separator))
@@ -155,15 +164,15 @@ func main() {
           prevKey = ""
         }
         if mergedDataDict[key] == nil {
-          mergedDataDict[key] = record
+          mergedDataDict[key] = get_output_record(record, output_idx_list)
         } else {
-          mergedDataDict[key] = merge_data(record, mergedDataDict[key])
+          mergedDataDict[key] = get_output_record(merge_data(record, mergedDataDict[key]), output_idx_list)
         }
 
         prevKey = key
       }
     } else {
-      if(pattern == record[label_order_date][0:len(pattern)]) {
+      if(pattern == record[index_order_date][0:len(pattern)]) {
         fmt.Println(strings.Join(record, join_separator))
       }
     }
@@ -208,19 +217,31 @@ func getOptions() Options {
   return options
 }
 
-func merge_data(record []string, data []string) (ret []string) {
-  rPair := record[label_order_pair]
-  rDate := record[label_order_date]
-  rTime := record[label_order_time]
-  rHigh := record[label_order_high]
-  rLow := record[label_order_low]
-  rClose := record[label_order_close]
-  rVol:= record[label_order_vol]
+func get_output_record(record []string, output_idx_list[]int) (ret []string) {
+  if len(output_idx_list) <= 0 {
+    return record
+  }
+  size := len(output_idx_list)
+  result := make([]string, size, size)
+  for i, v := range output_idx_list {
+    result[i] = record[v]
+  }
+  return result
+}
 
-  sOpen := data[label_order_open]
-  sHigh := data[label_order_high]
-  sLow := data[label_order_low]
-  sVol:= data[label_order_vol]
+func merge_data(record []string, data []string) (ret []string) {
+  rPair := record[index_order_pair]
+  rDate := record[index_order_date]
+  rTime := record[index_order_time]
+  rHigh := record[index_order_high]
+  rLow := record[index_order_low]
+  rClose := record[index_order_close]
+  rVol:= record[index_order_vol]
+
+  sOpen := data[index_order_open]
+  sHigh := data[index_order_high]
+  sLow := data[index_order_low]
+  sVol:= data[index_order_vol]
   if sHigh > rHigh {
     rHigh = sHigh
   }
