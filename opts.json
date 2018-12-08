@@ -1,9 +1,9 @@
 {
   "options": {
     "order": [
+      "PAIR",
       "DATE",
       "TIME",
-      "PAIR",
       "OPEN",
       "HIGH",
       "LOW",
