@@ -12,7 +12,7 @@
     ],
     "division_separator": ",",
     "join_separator": ",",
-    "data_path": "dollyen2.txt",
+    "data_path": "sample.txt",
     "filter": "2001",
     "unit": 60
   }
