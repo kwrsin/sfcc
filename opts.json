@@ -1,9 +1,9 @@
 {
   "options": {
     "order": [
-      "PAIR",
       "DATE",
       "TIME",
+      "PAIR",
       "OPEN",
       "HIGH",
       "LOW",
@@ -12,8 +12,8 @@
     ],
     "division_separator": ",",
     "join_separator": ",",
-    "data_path": "sample.txt",
-    "filter": "2018",
+    "data_path": "dollyen2.txt",
+    "filter": "2001",
     "unit": 60
   }
 }

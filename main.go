@@ -72,7 +72,6 @@ func main() {
   var pattern string = ""
   var fp *os.File
   var err error
-  var output_idx_list = make([]int, 0, index_order_vol + 1)
 
   opts := getOptions().Options
   if opts.Join_separator != "" {
@@ -84,28 +83,20 @@ func main() {
   if opts.Order != nil {
     for i := 0; i < len(opts.Order); i++ {
       if opts.Order[i] != "" && opts.Order[i] == opt_pair {
-        output_idx_list = append(output_idx_list, index_order_pair)
         index_order_pair = i
       } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_date {
-        output_idx_list = append(output_idx_list, index_order_date)
         index_order_date = i
       } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_time {
-        output_idx_list = append(output_idx_list, index_order_time)
         index_order_time = i
       } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_open {
-        output_idx_list = append(output_idx_list, index_order_open)
         index_order_open = i
       } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_high {
-        output_idx_list = append(output_idx_list, index_order_high)
         index_order_high = i
       } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_low {
-        output_idx_list = append(output_idx_list, index_order_low)
         index_order_low = i
       } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_close {
-        output_idx_list = append(output_idx_list, index_order_close)
         index_order_close = i
       } else if opts.Order[i] != "" && strings.ToUpper(opts.Order[i]) == opt_vol {
-        output_idx_list = append(output_idx_list, index_order_vol)
         index_order_vol = i
       }
     }
@@ -164,9 +155,9 @@ func main() {
           prevKey = ""
         }
         if mergedDataDict[key] == nil {
-          mergedDataDict[key] = get_output_record(record, output_idx_list)
+          mergedDataDict[key] = record
         } else {
-          mergedDataDict[key] = get_output_record(merge_data(record, mergedDataDict[key]), output_idx_list)
+          mergedDataDict[key] = merge_data(record, mergedDataDict[key])
         }
 
         prevKey = key
@@ -215,18 +206,6 @@ func getOptions() Options {
   json.Unmarshal([]byte(bytes), &options)
 
   return options
-}
-
-func get_output_record(record []string, output_idx_list[]int) (ret []string) {
-  if len(output_idx_list) <= 0 {
-    return record
-  }
-  size := len(output_idx_list)
-  result := make([]string, size, size)
-  for i, v := range output_idx_list {
-    result[i] = record[v]
-  }
-  return result
 }
 
 func merge_data(record []string, data []string) (ret []string) {
