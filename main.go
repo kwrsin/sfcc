@@ -17,7 +17,8 @@ Usage
   opts.json
     the file need to put same directory app file exist.
 
-    input              => order of reading file
+    input              => field order of a input file
+    output             => field order of a output file
     division_separator => input's separator
     join_separator     => output's separator
     data_path          => datafile(csv, tsv...) if the field is empty, get data from stdin using pipe.
@@ -150,7 +151,7 @@ func main() {
         datetime_str := record[index_order_date] + record[index_order_time]
         key := getKey(datetime_str, div, unit)
         if prevKey != "" && mergedDataDict[key] == nil {
-          fmt.Println(strings.Join(mergedDataDict[prevKey], join_separator))
+          fmt.Println(strings.Join(get_output_record(mergedDataDict[prevKey], opts.Output), join_separator))
           delete(mergedDataDict, prevKey)
           prevKey = ""
         }
@@ -169,7 +170,7 @@ func main() {
     }
   }
   if prevKey != "" && mergedDataDict[prevKey] != nil {
-    fmt.Println(strings.Join(mergedDataDict[prevKey], join_separator))
+    fmt.Println(strings.Join(get_output_record(mergedDataDict[prevKey], opts.Output), join_separator))
     delete(mergedDataDict, prevKey)
     prevKey = ""
   }
@@ -187,6 +188,7 @@ type Options struct {
 
 type Option struct {
   Input []string `json:"input"`
+  Output []string `json:"output"`
   Division_separator string `json:"division_separator"`
   Join_separator string `json:"join_separator"`
   Data_path string `json:"data_path"`
@@ -206,6 +208,36 @@ func getOptions() Options {
   json.Unmarshal([]byte(bytes), &options)
 
   return options
+}
+
+func get_output_record(record []string, output []string) (ret []string) {
+  if output == nil {
+    return record
+  }
+  result := make([]string, 0, 10)
+  for _, v := range output {
+    switch (v) {
+    case opt_pair:
+      result = append(result, record[0])
+    case opt_date:
+      result = append(result, record[1])
+    case opt_time:
+      result = append(result, record[2])
+    case opt_open:
+      result = append(result, record[3])
+    case opt_high:
+      result = append(result, record[4])
+    case opt_low:
+      result = append(result, record[5])
+    case opt_close:
+      result = append(result, record[6])
+    case opt_vol:
+      result = append(result, record[7])
+    default:
+
+    }
+  }
+  return result
 }
 
 func merge_data(record []string, data []string) (ret []string) {
