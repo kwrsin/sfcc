@@ -56,6 +56,8 @@ const opt_high = "HIGH"
 const opt_low = "LOW"
 const opt_close = "CLOSE"
 const opt_vol = "VOL"
+const opt_calc_dif = "CALC_DIF"
+const opt_calc_accel = "CALC_ACCEL"
 const minmum_group = 60
 var index_order_pair = 0
 var index_order_date = 1
@@ -233,11 +235,22 @@ func get_output_record(record []string, output []string) (ret []string) {
       result = append(result, record[6])
     case opt_vol:
       result = append(result, record[7])
+    case opt_calc_dif:
+      if(isFloat(record[4]) && isFloat(record[5])) {
+        dif := getDif(toFloat(record[4]), toFloat(record[5]))
+        ret := fmt.Sprintf("%.5f", dif)
+        result = append(result, ret)
+      }
+    case opt_calc_accel:
     default:
 
     }
   }
   return result
+}
+
+func getDif(heigh float64, low float64) (float64) {
+  return heigh - low
 }
 
 func merge_data(record []string, data []string) (ret []string) {
@@ -306,6 +319,18 @@ func isNumber(val string) bool {
 
 func toNumber(val string) int {
   v, _ := strconv.Atoi(val)
+  return v
+}
+
+func isFloat(val string) bool {
+  if _, err := strconv.ParseFloat(val, 32); err == nil {
+    return true
+  }
+  return false
+}
+
+func toFloat(val string) float64 {
+  v, _ := strconv.ParseFloat(val, 32)
   return v
 }
 

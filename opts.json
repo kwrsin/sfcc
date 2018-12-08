@@ -18,7 +18,9 @@
       "HIGH",
       "LOW",
       "CLOSE",
-      "VOL"
+      "VOL",
+      "CALC_DIF",
+      "CALC_ACCEL"
     ],
     "division_separator": ",",
     "join_separator": ",",
