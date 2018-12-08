@@ -210,13 +210,13 @@ func getOptions() Options {
 
 func merge_data(record []string, data []string) (ret []string) {
   rPair := record[index_order_pair]
-  rDate := record[index_order_date]
-  rTime := record[index_order_time]
   rHigh := record[index_order_high]
   rLow := record[index_order_low]
   rClose := record[index_order_close]
   rVol:= record[index_order_vol]
 
+  sDate := data[index_order_date]
+  sTime := data[index_order_time]
   sOpen := data[index_order_open]
   sHigh := data[index_order_high]
   sLow := data[index_order_low]
@@ -230,7 +230,7 @@ func merge_data(record []string, data []string) (ret []string) {
 
   rVol = toString(toNumber(rVol) + toNumber(sVol))
 
-  return []string{rPair, rDate, rTime, sOpen, rHigh, rLow, rClose, rVol}
+  return []string{rPair, sDate, sTime, sOpen, rHigh, rLow, rClose, rVol}
 }
 
 func getKey(datetime_str string, div int, unit int ) (key string) {
