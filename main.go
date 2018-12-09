@@ -153,7 +153,7 @@ func main() {
         datetime_str := record[index_order_date] + record[index_order_time]
         key := getKey(datetime_str, div, unit)
         if prevKey != "" && mergedDataDict[key] == nil {
-          fmt.Println(strings.Join(get_output_record(mergedDataDict[prevKey], opts.Output), join_separator))
+          fmt.Println(strings.Join(get_output_record(mergedDataDict[prevKey], opts.Output, group_sec), join_separator))
           delete(mergedDataDict, prevKey)
           prevKey = ""
         }
@@ -172,7 +172,7 @@ func main() {
     }
   }
   if prevKey != "" && mergedDataDict[prevKey] != nil {
-    fmt.Println(strings.Join(get_output_record(mergedDataDict[prevKey], opts.Output), join_separator))
+    fmt.Println(strings.Join(get_output_record(mergedDataDict[prevKey], opts.Output, group_sec), join_separator))
     delete(mergedDataDict, prevKey)
     prevKey = ""
   }
@@ -212,7 +212,7 @@ func getOptions() Options {
   return options
 }
 
-func get_output_record(record []string, output []string) (ret []string) {
+func get_output_record(record []string, output []string, total int) (ret []string) {
   if output == nil {
     return record
   }
@@ -242,6 +242,11 @@ func get_output_record(record []string, output []string) (ret []string) {
         result = append(result, ret)
       }
     case opt_calc_accel:
+      if(isFloat(record[3]) && isFloat(record[6])) {
+        ac := getAccel(toFloat(record[3]), toFloat(record[6]), total)
+        ret := fmt.Sprintf("%.7f", ac)
+        result = append(result, ret)
+      }
     default:
 
     }
@@ -251,6 +256,10 @@ func get_output_record(record []string, output []string) (ret []string) {
 
 func getDif(heigh float64, low float64) (float64) {
   return heigh - low
+}
+
+func getAccel(open_price float64, close_price float64, total int) (float64) {
+  return (close_price - open_price) / float64(total)
 }
 
 func merge_data(record []string, data []string) (ret []string) {
