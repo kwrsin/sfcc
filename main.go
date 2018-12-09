@@ -15,13 +15,13 @@ Usage
     cat sample.txt | ./sfcc > usjp2018.txt
 
   opts.json
-    the file need to put same directory app file exist.
+    the file need to put working directory excute the job.
 
     input              => field order of a input file
     output             => field order of a output file
     division_separator => input's separator
     join_separator     => output's separator
-    data_path          => datafile(csv, tsv...) if the field is empty, get data from stdin using pipe.
+    data_path          => datafile(csv, tsv...) if the field is empty, get data from stdin through pipe system.
     filter             => if '2018' is set, just excluded 2018 year's data.
     unit               => set seconds. 10min(10*60) => 600, 1hour(60*60) => 3600
 
