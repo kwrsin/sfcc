@@ -74,7 +74,7 @@ func main() {
   var join_separator string = ","
   var division_separator string = ","
   var pattern string = ""
-  var illegal_chars string = ""
+  var illegal_chars string = "[:|.]"
   var fp *os.File
   var err error
 
