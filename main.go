@@ -74,6 +74,7 @@ func main() {
   var group_sec int = minmum_group
   var join_separator string = ","
   var division_separator string = ","
+  var required_field_count int = 8
   var pattern string = ""
   var illegal_chars string = "[:|.]"
   var fp *os.File
@@ -87,6 +88,7 @@ func main() {
     division_separator = opts.Division_separator
   }
   if opts.Input != nil {
+    required_field_count = 0
     index_order_pair = unset
     index_order_date = unset
     index_order_time = unset
@@ -98,20 +100,28 @@ func main() {
     for i := 0; i < len(opts.Input); i++ {
       if opts.Input[i] != "" && opts.Input[i] == opt_pair {
         index_order_pair = i
+        required_field_count++
       } else if opts.Input[i] != "" && strings.ToUpper(opts.Input[i]) == opt_date {
         index_order_date = i
+        required_field_count++
       } else if opts.Input[i] != "" && strings.ToUpper(opts.Input[i]) == opt_time {
         index_order_time = i
+        required_field_count++
       } else if opts.Input[i] != "" && strings.ToUpper(opts.Input[i]) == opt_open {
         index_order_open = i
+        required_field_count++
       } else if opts.Input[i] != "" && strings.ToUpper(opts.Input[i]) == opt_high {
         index_order_high = i
+        required_field_count++
       } else if opts.Input[i] != "" && strings.ToUpper(opts.Input[i]) == opt_low {
         index_order_low = i
+        required_field_count++
       } else if opts.Input[i] != "" && strings.ToUpper(opts.Input[i]) == opt_close {
         index_order_close = i
+        required_field_count++
       } else if opts.Input[i] != "" && strings.ToUpper(opts.Input[i]) == opt_vol {
         index_order_vol = i
+        required_field_count++
       }
     }
   }
@@ -164,7 +174,7 @@ func main() {
 
     str_date := record[index_order_date]
     str_time := record[index_order_time]
-    if group_sec >= minmum_group {
+    if group_sec >= minmum_group && len(record) >= required_field_count {
       if len(illegal_chars) > 0 {
         str_date = rep.ReplaceAllString(str_date, "")
         str_time = rep.ReplaceAllString(str_time, "")
