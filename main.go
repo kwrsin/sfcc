@@ -255,14 +255,14 @@ func get_output_record(record []string, output []string, total int) (ret []strin
     case opt_vol:
       result = append(result, record[index_order_vol])
     case opt_calc_dif:
-      if(isFloat(record[4]) && isFloat(record[5])) {
-        dif := getDif(toFloat(record[4]), toFloat(record[5]))
+      if(isFloat(record[index_order_high]) && isFloat(record[index_order_low])) {
+        dif := getDif(toFloat(record[index_order_high]), toFloat(record[index_order_low]))
         ret := fmt.Sprintf("%.5f", dif)
         result = append(result, ret)
       }
     case opt_calc_accel:
-      if(isFloat(record[3]) && isFloat(record[6])) {
-        ac := getAccel(toFloat(record[3]), toFloat(record[6]), total)
+      if(isFloat(record[index_order_open]) && isFloat(record[index_order_close])) {
+        ac := getAccel(toFloat(record[index_order_open]), toFloat(record[index_order_close]), total)
         ret := fmt.Sprintf("%.7f", ac)
         result = append(result, ret)
       }
