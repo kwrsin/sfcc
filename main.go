@@ -60,6 +60,7 @@ const opt_vol = "VOL"
 const opt_calc_dif = "CALC_DIF"
 const opt_calc_accel = "CALC_ACCEL"
 const minmum_group = 60
+const unset = -1
 var index_order_pair = 0
 var index_order_date = 1
 var index_order_time = 2
@@ -86,6 +87,14 @@ func main() {
     division_separator = opts.Division_separator
   }
   if opts.Input != nil {
+    index_order_pair = unset
+    index_order_date = unset
+    index_order_time = unset
+    index_order_open = unset
+    index_order_high = unset
+    index_order_low = unset
+    index_order_close = unset
+    index_order_vol = unset
     for i := 0; i < len(opts.Input); i++ {
       if opts.Input[i] != "" && opts.Input[i] == opt_pair {
         index_order_pair = i
@@ -169,9 +178,7 @@ func main() {
         datetime_str := str_date + str_time
         key := getKey(datetime_str, div, unit)
         if prevKey != "" && mergedDataDict[key] == nil {
-    breakpoint()
-          ch := strings.Join(get_output_record(mergedDataDict[prevKey], opts.Output, group_sec), join_separator)
-          fmt.Println(ch)
+          fmt.Println(strings.Join(get_output_record(mergedDataDict[prevKey], opts.Output, group_sec), join_separator))
           delete(mergedDataDict, prevKey)
           prevKey = ""
         }
@@ -239,29 +246,45 @@ func get_output_record(record []string, output []string, total int) (ret []strin
   for _, v := range output {
     switch (v) {
     case opt_pair:
-      result = append(result, record[index_order_pair])
+      if index_order_pair > unset {
+        result = append(result, record[index_order_pair])
+      }
     case opt_date:
-      result = append(result, record[index_order_date])
+      if index_order_date > unset {
+        result = append(result, record[index_order_date])
+      }
     case opt_time:
-      result = append(result, record[index_order_time])
+      if index_order_time > unset {
+        result = append(result, record[index_order_time])
+      }
     case opt_open:
-      result = append(result, record[index_order_open])
+      if index_order_open > unset {
+        result = append(result, record[index_order_open])
+      }
     case opt_high:
-      result = append(result, record[index_order_high])
+      if index_order_high > unset {
+        result = append(result, record[index_order_high])
+      }
     case opt_low:
-      result = append(result, record[index_order_low])
+      if index_order_low > unset {
+        result = append(result, record[index_order_low])
+      }
     case opt_close:
-      result = append(result, record[index_order_close])
+      if index_order_close > unset {
+        result = append(result, record[index_order_close])
+      }
     case opt_vol:
-      result = append(result, record[index_order_vol])
+      if index_order_vol > unset {
+        result = append(result, record[index_order_vol])
+      }
     case opt_calc_dif:
-      if(isFloat(record[index_order_high]) && isFloat(record[index_order_low])) {
+      if(index_order_high > unset && index_order_low > unset) {
         dif := getDif(toFloat(record[index_order_high]), toFloat(record[index_order_low]))
         ret := fmt.Sprintf("%.5f", dif)
         result = append(result, ret)
       }
     case opt_calc_accel:
-      if(isFloat(record[index_order_open]) && isFloat(record[index_order_close])) {
+      if(index_order_open > unset && index_order_close > unset) {
         ac := getAccel(toFloat(record[index_order_open]), toFloat(record[index_order_close]), total)
         ret := fmt.Sprintf("%.7f", ac)
         result = append(result, ret)
@@ -282,28 +305,45 @@ func getAccel(open_price float64, close_price float64, total int) (float64) {
 }
 
 func merge_data(record []string, data []string) (ret []string) {
-  rPair := record[index_order_pair]
-  rHigh := record[index_order_high]
-  rLow := record[index_order_low]
-  rClose := record[index_order_close]
-  rVol:= record[index_order_vol]
-
-  sDate := data[index_order_date]
-  sTime := data[index_order_time]
-  sOpen := data[index_order_open]
-  sHigh := data[index_order_high]
-  sLow := data[index_order_low]
-  sVol:= data[index_order_vol]
-  if sHigh > rHigh {
-    rHigh = sHigh
+  if index_order_pair > unset {
+    record[index_order_pair] = record[index_order_pair]
   }
-  if sLow < rLow {
-    rLow = sLow
+  if index_order_date > unset {
+    record[index_order_date] = data[index_order_date]
+  }
+  if index_order_time > unset {
+    record[index_order_time] = data[index_order_time]
+  }
+  if index_order_open > unset {
+    record[index_order_open] = data[index_order_open]
+  }
+  if index_order_high > unset {
+    rHigh := record[index_order_high]
+    sHigh := data[index_order_high]
+    if sHigh > rHigh {
+      rHigh = sHigh
+    }
+    record[index_order_high] = rHigh
+  }
+  if index_order_low > unset {
+    rLow := record[index_order_low]
+    sLow := data[index_order_low]
+    if sLow < rLow {
+      rLow = sLow
+    }
+    record[index_order_low] = rLow
+  }
+  if index_order_close > unset {
+    record[index_order_close] = record[index_order_close]
+  }
+  if index_order_vol > unset {
+    rVol:= record[index_order_vol]
+    sVol:= data[index_order_vol]
+    rVol = toString(toNumber(rVol) + toNumber(sVol))
+    record[index_order_vol] = rVol
   }
 
-  rVol = toString(toNumber(rVol) + toNumber(sVol))
-
-  return []string{rPair, sDate, sTime, sOpen, rHigh, rLow, rClose, rVol}
+  return record
 }
 
 func getKey(datetime_str string, div int, unit int ) (key string) {
