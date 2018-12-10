@@ -41,6 +41,7 @@ import(
   "errors"
   "strings"
   "strconv"
+  "regexp"
 )
 
 const action_sum string = "sum"
@@ -73,6 +74,7 @@ func main() {
   var join_separator string = ","
   var division_separator string = ","
   var pattern string = ""
+  var illegal_chars string = ""
   var fp *os.File
   var err error
 
@@ -107,6 +109,10 @@ func main() {
   if opts.Filter != "" {
     pattern = opts.Filter
   }
+  if opts.Illegal_chars != "" {
+    illegal_chars = opts.Illegal_chars
+  }
+  rep := regexp.MustCompile(illegal_chars)
   group_sec = opts.Unit
   if len(os.Args) > 1 {
     pattern = os.Args[1]
@@ -147,13 +153,25 @@ func main() {
       failOnError(err)
     }
 
+    str_date := record[index_order_date]
+    str_time := record[index_order_time]
     if group_sec >= minmum_group {
-      if(pattern == record[index_order_date][0:len(pattern)] && isNumber(record[index_order_date][0:4])) {
+      if len(illegal_chars) > 0 {
+        str_date = rep.ReplaceAllString(str_date, "")
+        str_time = rep.ReplaceAllString(str_time, "")
+        padding := 6 - len(str_time)
+        if padding > 0 {
+          str_time = str_time + strings.Repeat("0", padding)
+        }
+      }
+      if(pattern == str_date[0:len(pattern)] && isNumber(str_date[0:4])) {
         div, unit := getNumberOfDivision(group_sec)
-        datetime_str := record[index_order_date] + record[index_order_time]
+        datetime_str := str_date + str_time
         key := getKey(datetime_str, div, unit)
         if prevKey != "" && mergedDataDict[key] == nil {
-          fmt.Println(strings.Join(get_output_record(mergedDataDict[prevKey], opts.Output, group_sec), join_separator))
+    breakpoint()
+          ch := strings.Join(get_output_record(mergedDataDict[prevKey], opts.Output, group_sec), join_separator)
+          fmt.Println(ch)
           delete(mergedDataDict, prevKey)
           prevKey = ""
         }
@@ -166,7 +184,7 @@ func main() {
         prevKey = key
       }
     } else {
-      if(pattern == record[index_order_date][0:len(pattern)]) {
+      if(pattern == str_date[0:len(pattern)]) {
         fmt.Println(strings.Join(record, join_separator))
       }
     }
@@ -196,6 +214,7 @@ type Option struct {
   Data_path string `json:"data_path"`
   Filter string `json:"filter"`
   Unit int `json:"unit"`
+  Illegal_chars string `json:"illegal_chars"`
 }
 
 func getOptions() Options {
@@ -220,21 +239,21 @@ func get_output_record(record []string, output []string, total int) (ret []strin
   for _, v := range output {
     switch (v) {
     case opt_pair:
-      result = append(result, record[0])
+      result = append(result, record[index_order_pair])
     case opt_date:
-      result = append(result, record[1])
+      result = append(result, record[index_order_date])
     case opt_time:
-      result = append(result, record[2])
+      result = append(result, record[index_order_time])
     case opt_open:
-      result = append(result, record[3])
+      result = append(result, record[index_order_open])
     case opt_high:
-      result = append(result, record[4])
+      result = append(result, record[index_order_high])
     case opt_low:
-      result = append(result, record[5])
+      result = append(result, record[index_order_low])
     case opt_close:
-      result = append(result, record[6])
+      result = append(result, record[index_order_close])
     case opt_vol:
-      result = append(result, record[7])
+      result = append(result, record[index_order_vol])
     case opt_calc_dif:
       if(isFloat(record[4]) && isFloat(record[5])) {
         dif := getDif(toFloat(record[4]), toFloat(record[5]))

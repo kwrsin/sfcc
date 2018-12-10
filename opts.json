@@ -26,6 +26,7 @@
     "join_separator": ",",
     "data_path": "sample.txt",
     "filter": "2001",
-    "unit": 60
+    "unit": 60,
+    "illegal_chars": "[:|.]"
   }
 }
